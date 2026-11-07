@@ -28,7 +28,7 @@ const dict = {
     available: 'Доступна',
     unavailable: 'Нет ключа / офлайн',
     mode: 'Режим',
-    modeRag: 'RAG Chat',
+    modeRag: 'Чат по документам',
     modeAgent: 'AI Агент',
     modeSearch: 'Векторный поиск',
     modeRagHint: 'Один поиск → ответ',
@@ -82,8 +82,7 @@ const dict = {
 
     providerErrorTitle: 'Модель недоступна',
     providerErrorBody:
-      'Выбранный LLM-провайдер отклонил запрос — чаще всего это значит, что исчерпан баланс аккаунта или неверный API-ключ. Пополните баланс провайдера, выберите другую модель в селекторе — или напишите нам, поможем настроить.',
-    providerErrorContact: 'Связаться с нами',
+      'Выбранный LLM-провайдер отклонил запрос — проверьте баланс аккаунта и API-ключ или выберите другую модель.',
     providerErrorClose: 'Закрыть',
     providerErrorDetails: 'Подробности',
 
@@ -136,7 +135,7 @@ const dict = {
     available: 'Available',
     unavailable: 'No key / offline',
     mode: 'Mode',
-    modeRag: 'RAG Chat',
+    modeRag: 'Document chat',
     modeAgent: 'AI Agent',
     modeSearch: 'Vector search',
     modeRagHint: 'One retrieve → answer',
@@ -190,8 +189,7 @@ const dict = {
 
     providerErrorTitle: 'Model unavailable',
     providerErrorBody:
-      'The selected LLM provider declined the request — most often this means the account balance is exhausted or the API key is invalid. Top up the provider balance, choose another model in the selector, or contact us and we will help you set it up.',
-    providerErrorContact: 'Contact us',
+      'The selected LLM provider declined the request. Check the account balance and API key, or choose another model.',
     providerErrorClose: 'Close',
     providerErrorDetails: 'Details',
 

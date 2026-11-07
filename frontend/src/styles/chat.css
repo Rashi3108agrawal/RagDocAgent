@@ -32,7 +32,7 @@
   width: 68px;
   height: 68px;
   margin: 0 auto 22px;
-  border-radius: 20px;
+  border-radius: var(--r-md);
   display: grid;
   place-items: center;
   color: #fff;
@@ -402,15 +402,15 @@
   color: var(--accent);
 }
 .mode-badge.agent {
-  background: color-mix(in srgb, #0ea5e9 14%, transparent);
-  color: #0284c7;
+  background: color-mix(in srgb, var(--accent-2) 14%, transparent);
+  color: var(--accent-2);
 }
 [data-theme="dark"] .mode-badge.agent {
-  color: #7dd3fc;
-  background: color-mix(in srgb, #38bdf8 16%, transparent);
+  color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 16%, transparent);
 }
 .welcome-logo.agent {
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: var(--accent-2);
 }
 
 .agent-steps {
@@ -418,7 +418,7 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--bg-elev) 88%, #0ea5e9 12%);
+  background: color-mix(in srgb, var(--bg-elev) 88%, var(--accent-2) 12%);
 }
 .agent-steps-head {
   display: flex;

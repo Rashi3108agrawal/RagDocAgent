@@ -44,7 +44,7 @@ const injectGa4 = () => {
 }
 
 /**
- * Разметка Яндекс.Метрики и GA4 (как getAnalyticsMarkup в lyako-way).
+ * Разметка Яндекс.Метрики и GA4.
  * Для Vite вставляем скрипты в <head> до монтирования React.
  * Без ID в env — no-op.
  */

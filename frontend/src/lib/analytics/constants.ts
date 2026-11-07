@@ -26,8 +26,6 @@ export const AnalyticsEvent = {
   FOLLOWUP_CLICK: 'followup_click',
   /** Модалка «Модель недоступна» показана (баланс/ключ провайдера) */
   PROVIDER_ERROR_MODAL: 'provider_error_modal',
-  /** Клик «Связаться с нами» в модалке провайдера */
-  PROVIDER_ERROR_CONTACT: 'provider_error_contact',
   /** Старт голосового ввода (context: chat | search) */
   VOICE_INPUT: 'voice_input',
   DOCUMENT_DELETE: 'document_delete',
@@ -37,7 +35,7 @@ export const AnalyticsEvent = {
   CONVERSATION_DELETE_ERROR: 'conversation_delete_error',
   CATEGORY_FILTER: 'category_filter',
   MODEL_CHANGE: 'model_change',
-  /** Переключатель «Режим: RAG Chat | AI Агент» */
+  /** Переключатель режима чата и агента */
   MODE_CHANGE: 'mode_change',
   /** Поиск выполнен в режиме «Векторный поиск» */
   VECTOR_SEARCH: 'vector_search',

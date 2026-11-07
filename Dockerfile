@@ -10,7 +10,7 @@ WORKDIR /fe
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
-# Vite вшивает VITE_* на этапе сборки (как NEXT_PUBLIC_* в lyako-way).
+# Vite embeds VITE_* values at build time.
 ARG VITE_YANDEX_METRIKA_ID=
 ARG VITE_GA4_MEASUREMENT_ID=
 ENV VITE_YANDEX_METRIKA_ID=$VITE_YANDEX_METRIKA_ID \
@@ -35,7 +35,7 @@ COPY --from=frontend /fe/dist ./static
 
 # Persistent data (uploads, chroma, sqlite). Ephemeral without a mounted disk.
 VOLUME ["/app/data"]
-# 7860 — порт по умолчанию для Hugging Face Spaces (совпадает с app_port в README).
+# Default container port; the host may override it through PORT.
 EXPOSE 7860
 
 # Shell form so ${PORT} (set by the host) is honored; 7860 by default.

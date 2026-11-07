@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Vite вшивает VITE_* на этапе сборки (как NEXT_PUBLIC_* в lyako-way).
+# Vite embeds VITE_* values at build time.
 ARG VITE_YANDEX_METRIKA_ID=
 ARG VITE_GA4_MEASUREMENT_ID=
 ENV VITE_YANDEX_METRIKA_ID=$VITE_YANDEX_METRIKA_ID \

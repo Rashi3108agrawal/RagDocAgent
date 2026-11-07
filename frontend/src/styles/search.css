@@ -1,17 +1,11 @@
 /* ================= Vector search view =================
    Reuses .chat / .welcome / .composer / .source-card from chat.css. */
 
-/* Distinct emerald identity for the search mode. */
 .welcome-logo.search {
-  background: linear-gradient(135deg, #10b981, #14b8a6);
+  background: var(--bg-soft);
 }
 .mode-badge.search {
-  background: color-mix(in srgb, #10b981 14%, transparent);
-  color: #059669;
-}
-[data-theme='dark'] .mode-badge.search {
-  color: #6ee7b7;
-  background: color-mix(in srgb, #34d399 16%, transparent);
+  color: var(--accent-2);
 }
 
 /* Input row: the shared .composer-box is flex-end aligned for a textarea;

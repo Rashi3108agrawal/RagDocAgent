@@ -1,7 +1,4 @@
-const CONTACTS_URL = 'https://lyakoway.vercel.app/contacts'
-
 import { useI18n } from '../lib/i18n'
-import { AnalyticsEvent, trackEvent } from '../lib/analytics'
 
 /** Detects provider-side failures worth explaining in a friendly modal:
  *  exhausted balance (429), quota, invalid/missing API key (401/403). */
@@ -12,11 +9,7 @@ export function isProviderError(text: string | undefined | null): boolean {
   )
 }
 
-/**
- * Модалка «Модель недоступна» — перенос из проекта ai-data-pilot:
- * понятное объяснение (баланс / ключ), сырая ошибка в <details>,
- * кнопки «Закрыть» и «Связаться с нами».
- */
+/** Explains common provider authentication, quota, and balance failures. */
 export function ProviderErrorModal({
   message,
   onClose,
@@ -41,15 +34,6 @@ export function ProviderErrorModal({
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             {t('providerErrorClose')}
           </button>
-          <a
-            className="btn btn-primary"
-            href={CONTACTS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEvent(AnalyticsEvent.PROVIDER_ERROR_CONTACT)}
-          >
-            {t('providerErrorContact')}
-          </a>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import './App.css'
 import './styles/chat.css'
 import './styles/documents.css'
 import './styles/search.css'
 import './styles/provider-error.css'
+import './App.css'
 import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
 import { ChatView } from './components/ChatView'
@@ -26,12 +26,8 @@ export default function App() {
   const { lang } = useI18n()
 
   // ---- Theme ----
-  // Initial value may come from ?theme= in the URL (see lib/prefs).
-  // Фолбэк темы — системная (prefers-color-scheme); URL ?theme= и
-  // localStorage перекрывают (см. lib/prefs).
-  const systemTheme = (): Theme =>
-    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  const [theme, setTheme] = useState<Theme>(() => initialPref('theme', THEMES, systemTheme()))
+  // URL and stored preferences override the terminal-dark default.
+  const [theme, setTheme] = useState<Theme>(() => initialPref('theme', THEMES, 'dark'))
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('theme', theme)

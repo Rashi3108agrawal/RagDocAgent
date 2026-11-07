@@ -1,10 +1,10 @@
-# Render Blueprint — деплой AI RAG Chat одним сервисом.
+# Render Blueprint for the combined RagDocAgent service.
 # Бэкенд (FastAPI) отдаёт и API, и собранный фронтенд с одного домена,
 # поэтому на free-тарифе не нужна межсервисная сеть и нет проблем с CORS.
 # Инструкция: Render Dashboard → New → Blueprint → выбрать этот репозиторий.
 services:
   - type: web
-    name: ai-rag-chat-backend
+    name: ragdocagent
     runtime: docker
     # Комбинированный образ из корня репозитория (фронт + бэкенд).
     dockerfilePath: ./Dockerfile

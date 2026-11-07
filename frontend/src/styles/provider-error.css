@@ -1,6 +1,4 @@
-/* ================= Provider error modal =================
-   Скопировано из проекта ai-data-pilot (App.css), переменные адаптированы
-   под RAG Chat (--bg-elev вместо --bg — как у модалки просмотрщика). */
+/* ================= Provider error modal ================= */
 
 .modal-overlay {
   position: fixed;
@@ -23,11 +21,10 @@
 }
 .modal-title { margin: 0 0 4px; font-size: 16px; }
 .modal-desc { margin: 0 0 14px; font-size: 12px; color: var(--text-muted); }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
 
 .modal-box-center .modal-title,
 .modal-box-center .modal-desc { text-align: center; }
-.modal-box-center .modal-actions { justify-content: center; }
 
 .provider-error-detail { margin: 10px 0 0; }
 .provider-error-detail summary {
@@ -53,10 +50,6 @@
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-}
-.btn-primary {
-  background: var(--accent-grad);
-  color: white;
 }
 .btn-ghost {
   border: 1px solid var(--border);

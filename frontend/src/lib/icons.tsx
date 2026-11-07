@@ -52,6 +52,9 @@ export const IconLayers = (p: SVGProps<SVGSVGElement>) => (
 export const IconSpark = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" /></svg>
 )
+export const IconTerminal = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}><path d="m5 7 5 5-5 5M13 17h6" /></svg>
+)
 export const IconBot = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="5" y="8" width="14" height="11" rx="3" />

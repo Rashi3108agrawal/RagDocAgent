@@ -1,515 +1,147 @@
----
-title: AI RAG Chat
-emoji: 📚
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
+# RagDocAgent
 
-English | [Русский](README.ru.md)
+RagDocAgent is a self-hostable workspace for asking questions across PDF, DOCX,
+and spreadsheet files. It combines document previews, retrieval, and cited
+answers in a compact developer-oriented interface.
 
-# 📚 AI RAG Chat — chat with your internal documents
+## Overview
 
-> Document Q&A over your own files (PDF, Word, Excel) **with citations to the
-> exact source page**. Three modes side by side: **RAG Chat**, **AI Agent**
-> and **Vector Search** — so the difference is visible on the same question.
-> Answers are grounded **only in the uploaded documents**.
-
-### 🔗 Live demo → **https://lyakoway-rag-chat.hf.space**
-
-**Open pre-configured:** [English · Light](https://lyakoway-rag-chat.hf.space/?lang=en&theme=light) · [English · Dark](https://lyakoway-rag-chat.hf.space/?lang=en&theme=dark) · [Русский · Тёмная](https://lyakoway-rag-chat.hf.space/?lang=ru&theme=dark)
-
-[![CI](https://github.com/lyakoway/ai-RAG-chat/actions/workflows/ci.yml/badge.svg)](https://github.com/lyakoway/ai-RAG-chat/actions/workflows/ci.yml)
-[![Demo](https://img.shields.io/badge/demo-🤗%20Hugging%20Face%20Spaces-ff9d00)](https://lyakoway-rag-chat.hf.space)
-![backend](https://img.shields.io/badge/backend-FastAPI-009688)
-![frontend](https://img.shields.io/badge/frontend-React%2019%20%2B%20Vite-61dafb)
-![vector](https://img.shields.io/badge/vector-ChromaDB-5c2d91)
-![license](https://img.shields.io/badge/license-MIT-black)
-
-<sub>On the free tier the demo Space may fall asleep — the first visit after
-idle takes ~50 s to wake up.</sub>
-
-## Key numbers
-
-| Metric                                   | Value                      |
-| ---------------------------------------- | -------------------------- |
-| Recall@1 · held-out set (47 queries)     | **87%**                    |
-| First token (TTFT) · GLM-5.3-flash       | ~2.5–3 s                   |
-| Cost per question · GLM-5.3-flash        | ≈ $0.0002 measured (~5,000 questions per $1) |
-| Vector search via API · p50              | 18 ms                      |
-| Demo pack indexing · 6 files → 12 chunks | 0.7 s                      |
-| pytest tests + CI                        | 128 (63 app + 65 bench)    |
-
-## What the project is for
-
-Answers over internal documents **with citations pointing to the exact page** —
-instead of manually digging through PDF, Word and Excel files. The live demo
-runs on a public test pack (6 files → 12 chunks). Several scenarios where it
-already works:
-
-- **Company knowledge base.** HR policies, regulations and handbooks: “how many
-  vacation days”, “how is internet reimbursed” — an answer in seconds instead
-  of digging through folders. This is exactly what the app's demo pack shows.
-- **Customer support over product docs.** Product manuals, pricing and FAQ — a
-  customer asks in their own words and gets an answer linked to the manual
-  section. Support sees fewer repetitive tickets.
-- **Legal and financial documents.** Find a clause, deadline or figure in
-  contracts and reports: the citation points to the exact page, so verifying an
-  answer takes seconds rather than a separate investigation.
-
-## Screenshots
-
-| Chat with citations and feedback                        | Vector search with scores                                |
-| ------------------------------------------------------- | -------------------------------------------------------- |
-| ![Chat with citations](docs/screenshots/chat-citations-ru.png) | ![Vector search](docs/screenshots/vector-search-ru.png) |
-
-Sources with relevance scores and 👍/👎 feedback on answers:
-
-![Sources and feedback](docs/screenshots/sources-feedback-ru.png)
+Add a document collection, choose a model, and search or ask questions in English. Answers include source references that open the relevant
+document preview. The application can run with local embeddings and its demo
+model configuration, or connect to a supported language-model provider.
 
 ## Features
 
-- 🔀 **Three modes** — **RAG Chat** (one retrieval → answer), **AI Agent** (a tool
-  loop with visible steps: list files → search → answer) and **Vector Search**
-  (semantic search over chunks without an LLM, with relevance scores). Mode
-  switcher in the filter panel.
-- 📄 **Search across documents** — PDF, Word (.docx), Excel (.xlsx).
-- 📚 **Multiple documents at once** — upload in batches, search across the collection.
-- 🎙️ **Voice input** — ask by voice in chat and in vector search
-  (Web Speech API: Chrome, Edge, Safari 14.5+, Android, hidden in Firefox).
-- 🔗 **Citations and sources** — every answer references a file and a **page
-  number**. The `[1]`, `[2]` markers are **clickable** and highlight the fragment.
-- 👁️ **Built-in preview** — PDF / DOCX / Excel in a modal. Clicking a source opens
-  the fragment (for PDF — right at the cited page).
-- 💬 **Conversation history** — all chats are stored. You can return to any of them.
-- 🏷️ **Category filtering** — narrow the search to a category (HR, Finance, …).
-- 🤖 **Model switcher** — Z.ai (**GLM-5.3-flash** recommended — a **free**
-  `glm-4.5-flash` tier exists but is slow: 25–50 s TTFT), OpenAI (GPT),
-  Anthropic (Claude), local (Ollama), or an offline demo mode without keys.
-- ⚡ **Streaming answers** — tokens arrive in real time (SSE).
-- 🎨 **Clean UI** — light/dark theme, responsive layout.
-
-## Engineering approach
-
-The pipeline was built against three constraints, each verified in the
-measurements below:
-
-- **quality** — the right document at the top of retrieval, every fact backed
-  by a page-level citation.
-- **speed** — first token within seconds (met: ~2.5–3 s on GLM-5.3-flash).
-- **accessibility** — the full loop works without API keys (local embeddings +
-  offline demo mode).
-
-I compare retrieval, models and pipeline tweaks on a held-out set, then keep or
-reject. This repo ships three such decisions — hybrid vs dense, a reranker that
-lost, and a model default set by latency — not by a tutorial.
-
-**What shipped — decisions from the loop:**
-
-| Decision           | Measurement                                     | Why it shipped                                                                              |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Retrieval**      | Hybrid BM25 + RRF · +34 p.p. Recall@1 vs dense  | **Kept:** dense-only hit 53% on RU/EN twins, lexical fusion is required, not optional        |
-| **Reranker**       | −45 p.p. Recall@1 · +~3 s                       | **Rejected:** the cross-encoder promotes language twins and adds latency                     |
-| **Default model**  | GLM-5.3-flash · TTFT ~2.5–3.0 s                 | **Shipped:** GLM-4.5-flash sits at 25–50 s on the same pipeline, the pipeline itself adds <1% |
-| Held-out retrieval | Recall@1 87.2% · Recall@3 97.9%                 | Supporting number on the public pack. Mixed-language queries are still open                  |
-| Answer judge       | 5.0/5 on three axes, same model family          | Supporting only. A strict eval needs an independent judge or a human                         |
-| Reliability        | 128 pytest tests + CI                           | Critical paths (errors, empty docs, agent loops) are under automated tests                   |
-
-Bold rows are keep / reject decisions. The absolute scores below them are
-supporting measurements, not headline claims.
-
-**AI engineer's checklist:**
-
-1. **Metrics before code** — define quality, latency, cost and reliability
-   before swapping models. Recall@1, TTFT, $/question and pytest coverage are
-   measured in this README, not claimed.
-2. **Evaluation before optimization** — golden set → Recall@K → experiment →
-   keep or reject. Held-out set (47 queries): hybrid became the default, the
-   reranker was rejected (−45 p.p., +~3 s).
-3. **Data-driven architecture** — compare retrieval, models and pipeline
-   config on the same eval set. GLM-5.3-flash is the default: GLM-4.5-flash
-   sits at 25–50 s TTFT on the same pipeline.
-4. **Observable AI systems** — tool calls, steps, errors, feedback and latency
-   must be visible: SSE done/error events, agent step timeline, 👍/👎 in the
-   DB, latency in logs.
-5. **Reproducible quality** — tests, CI, isolated eval environment and
-   regression control: the eval index is rebuilt from scratch on every run.
-   128 pytest tests + GitHub Actions.
+- Upload and index PDF, DOCX, XLSX, and XLS files.
+- Ask questions in a retrieval chat or multi-step agent mode.
+- Search document passages directly without calling a language model.
+- Retrieve with hybrid lexical and vector search.
+- Inspect citations in PDF, Word, and spreadsheet previews.
+- Keep conversation history, filter by category.
+- Stream generated responses and optionally use browser speech input.
 
 ## Architecture
 
+The React client communicates with the FastAPI service through the existing
+`/api` routes. The service parses and chunks uploads, creates embeddings, and
+stores document metadata and conversations in SQLite. ChromaDB stores vectors;
+hybrid retrieval combines vector results with BM25 rankings using reciprocal
+rank fusion. Chat and agent responses stream to the client, where citations
+link back to indexed sources.
+
+## Tech Stack
+
+- **Frontend:** React, TypeScript, Vite
+- **API:** Python, FastAPI
+- **Persistence:** SQLite and ChromaDB
+- **Retrieval:** local or OpenAI embeddings, BM25, reciprocal rank fusion
+- **Models:** OpenAI, Anthropic, Z.ai, Ollama, and offline mock mode
+- **Deployment:** Docker and Docker Compose
+
+## Installation
+
+Requirements: Python 3.12+, Node.js 22+, and npm. Docker is optional.
+
+```powershell
+git clone <your-repository-url> RagDocAgent
+cd RagDocAgent
+python -m venv backend\.venv
+backend\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+cd frontend
+npm ci
 ```
-┌─────────────────┐     /api (SSE + REST)    ┌──────────────────────────┐
-│  React + Vite   │ ◀──────────────────────▶ │         FastAPI          │
-│ (streaming UI)  │                          │                          │
-└─────────────────┘                          │  ┌────────────────────┐  │
-                                             │  │ Parsers (pdf/docx/ │  │
-                                             │  │        xlsx)       │  │
-                                             │  ├────────────────────┤  │
-                                             │  │ Chunking (tiktoken)│  │
-                                             │  ├────────────────────┤  │
-                                             │  │ Embeddings         │  │
-                                             │  │ (fastembed/OpenAI) │  │
-                                             │  ├────────────────────┤  │
-                                             │  │ Vector store       │  │───▶ ChromaDB
-                                             │  ├────────────────────┤  │
-                                             │  │ RAG hybrid BM25+RRF│  │
-                                             │  │ (rerank rejected)  │  │
-                                             │  ├────────────────────┤  │
-                                             │  │ LLM providers      │  │───▶ Z.ai (GLM) / OpenAI
-                                             │  ├────────────────────┤  │     Anthropic / Ollama
-                                             │  │ (mock/gpt/claude/  │  │
-                                             │  │  ollama)           │  │
-                                             │  └────────────────────┘  │
-                                             │   History → SQLite       │
-                                             └──────────────────────────┘
-```
 
-**Clean backend architecture** (`backend/app/`):
+On macOS or Linux, activate the environment with
+`source backend/.venv/bin/activate` from the repository root.
 
-| Layer         | Module                                            | Responsibility                       |
-| ------------- | ------------------------------------------------- | ------------------------------------ |
-| `api/routes/` | documents, chat, conversations, models, search    | HTTP endpoints, SSE                  |
-| `core/`       | ingestion, chunking, embeddings, vectorstore, rag | RAG domain logic                     |
-| `parsers/`    | pdf/docx/xlsx                                     | text + page-number extraction        |
-| `llm/`        | base, providers, registry                         | LLM provider abstraction             |
-| `db/`         | models, session                                   | conversation history (SQLite)        |
-| `schemas/`    | dto                                               | API contracts (Pydantic)             |
+## Configuration
 
-**Pipelines:**
+Copy `backend/.env.example` to `backend/.env`. Provider keys are optional;
+without them, local embeddings and the offline mock model remain available.
+Common settings include:
 
-- **RAG pipeline:** Documents → Parsing → Chunking → Embeddings → BM25 + Vector
-  Search → RRF → Context → LLM → Grounded Answer → Citations
-- **Agent pipeline:** User → Agent Loop → List Documents → Search → Refine →
-  Answer
+| Variable | Purpose |
+| --- | --- |
+| `OPENAI_API_KEY` | OpenAI chat or embedding access |
+| `ANTHROPIC_API_KEY` | Anthropic model access |
+| `ZAI_API_KEY` | Z.ai model access |
+| `OLLAMA_BASE_URL` | Ollama server address |
+| `EMBEDDING_PROVIDER` | `local` (default) or `openai` |
+| `SEARCH_HYBRID` | Enable BM25 and vector fusion |
+| `SEARCH_RERANK` | Enable optional cross-encoder reranking |
 
-## Production and reliability
+For analytics, set `VITE_YANDEX_METRIKA_ID` or
+`VITE_GA4_MEASUREMENT_ID` in the frontend build environment. These public
+measurement identifiers are embedded in the client bundle; never put secrets
+in `VITE_*` variables.
 
-- **Streaming** — SSE with explicit done / error events.
-- **Failure handling** — provider timeout, tool-step errors and graceful
-  recovery.
-- **Observability** — model, sources, latency, errors and user feedback.
-- **Testing** — 128 pytest tests (app + benchmark tools): RAG pipeline · hybrid
-  retrieval · document parsing · citations · API/SSE · error handling ·
-  benchmark metrics and deterministic answer checks. CI on GitHub Actions.
-- **Reproducibility** — the evaluation index is rebuilt from scratch on every
-  run.
+## Running Locally
 
-## Quick start
+Start the API from the repository root:
 
-The app runs **without keys** — in demo mode (mock LLM) with local embeddings.
-For real answers add keys to `backend/.env`.
-
-### 1. Backend
-
-```bash
+```powershell
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env         # optional: add your keys
 uvicorn app.main:app --reload --port 8000
 ```
 
-> The first run downloads a local embedding model (~120 MB) on the first
-> document upload.
+In another terminal, start the frontend:
 
-### 2. Frontend
-
-```bash
+```powershell
 cd frontend
-npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>.
+Open the Vite URL shown in the terminal (normally `http://localhost:5173`).
+The API is available at `http://localhost:8000`; interactive API documentation
+is at `/docs`.
 
-### One command (local)
+## Docker Deployment
 
-```bash
-./dev.sh        # starts backend (:8000) and frontend (:5173)
-```
+Run the separate development services with persistent local data:
 
-### Via Docker
-
-```bash
+```powershell
 docker compose up --build
-# frontend: http://localhost:5173   (nginx proxies /api to the backend)
 ```
 
-Keys can be passed through environment variables:
+The frontend is served on port 5173 and the API on port 8000. To build the
+combined image, which serves the API and frontend from one container:
 
-```bash
-OPENAI_API_KEY=sk-... docker compose up --build
+```powershell
+docker build -t ragdocagent .
+docker run --rm -p 7860:7860 -v ragdocagent-data:/app/data ragdocagent
 ```
 
-### Demo documents
+The combined image honors the hosting platform's `PORT` environment variable.
+The deployment blueprint in `render.yaml` can be used as a starting point for
+a Render deployment. Configure provider keys in the host's secret settings.
 
-Ready-made files live in [`backend/samples/`](backend/samples) (a 3-page PDF,
-Word, Excel). The empty Documents panel has a **“Load demo documents”** button —
-one click and you can try search and citations right away (clicking again does
-not duplicate anything). The batch can also be uploaded via API:
-`POST /api/documents/demo`. To regenerate the files:
+## Security
 
-```bash
-cd backend && .venv/bin/python scripts/make_samples.py
-```
+Provider credentials belong in environment variables or a deployment
+platform's secret store, not in source control or the browser bundle. Uploaded
+files and conversation data are stored on the server. The API does not provide
+user authentication; restrict network access or add an upstream access-control
+layer before exposing an instance to untrusted users. Back up the mounted
+`/app/data` volume for persistent deployments.
 
-## Connecting models
+## Roadmap
 
-| Provider               | How to enable                                                                                                                                                                                       |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Demo (offline)**     | always works, no setup                                                                                                                                                                              |
-| **Z.ai (GLM)**         | `ZAI_API_KEY=...` in `backend/.env`. Key: [z.ai/model-api](https://z.ai/model-api). Model list includes the latest `glm-5.3`, `glm-5.3-flash`, `glm-5.2`, plus `glm-4.5-flash` (**free**)             |
-| **OpenAI (GPT)**       | `OPENAI_API_KEY=sk-...` in `backend/.env`                                                                                                                                                           |
-| **Anthropic (Claude)** | `ANTHROPIC_API_KEY=sk-ant-...` in `backend/.env`                                                                                                                                                    |
-| **Ollama (local)**     | install [Ollama](https://ollama.com), `ollama pull llama3.2:3b` (see below)                                                                                                                         |
+- Add deployment guidance for reverse proxies and access-control layers.
+- Improve operational visibility for indexing and model-provider failures.
+- Expand automated coverage for document formats and retrieval quality.
 
-Unavailable models are marked with a grey dot in the dropdown (no key / model
-not pulled / server not running).
+## Contributing
 
-> **Z.ai** — an OpenAI-compatible endpoint (`https://api.z.ai/api/paas/v4`),
-> reachable without a VPN. The provider supports a custom `base_url`, so any
-> OpenAI-compatible gateway can be connected the same way.
+Keep changes focused and preserve the existing API, storage, and retrieval
+contracts. Before opening a change, run the relevant checks:
 
-### Vector search (fastembed)
-
-The third mode — search over chunks **without an LLM**: the query is encoded by
-a local fastembed model (ONNX, multilingual, ~120 MB, no API key), then ChromaDB
-returns the nearest chunks by cosine similarity with relevance scores. Clicking
-a result opens the document at the right page. The same mechanism powers RAG
-Chat and the AI Agent under the hood — this mode is useful to see exactly what
-is in the database and with which scores (handy for debugging retrieval
-quality). API: `GET /api/search?q=...&category=...&top_k=10`.
-
-### Local models via Ollama
-
-A free option with no keys and no billing — answers are generated on your
-machine.
-
-```bash
-# 1. Install Ollama: https://ollama.com/download  (or `brew install ollama`)
-# 2. Start the server (keep the terminal open):
-ollama serve
-# 3. In another terminal, pull a model:
-ollama pull llama3.2:3b     # 2 GB, fast, good for a demo
-#   a smarter option:
-ollama pull llama3.1        # 8B, 4.7 GB
-```
-
-Check: `curl http://localhost:11434/api/tags` returns the model list. Then
-refresh the page — the model becomes active in the “Model” list (no backend
-restart needed, availability is checked on every request).
-
-The model registry lives in
-[`backend/app/llm/registry.py`](backend/app/llm/registry.py). Pulled a model
-with a different tag — add a line there.
-
-#### ⚠️ macOS 13 (Ventura) and older
-
-The official Ollama build targets **macOS 14+** and uses Metal, which crashes
-on Ventura with `GGML_ASSERT(buf_dst) failed`. The server itself works — it
-just needs to compute on **CPU**. One line in `backend/.env`:
-
-```bash
-OLLAMA_NUM_GPU=0      # force CPU (workaround for the macOS 13 Metal bug)
-```
-
-> On Ventura run `ollama serve` from a terminal — the Ollama.app GUI does not
-> start (requires macOS 14). `brew install ollama` is also discouraged there:
-> no ready binary, brew builds from source (slow). Easier to grab a ready
-> binary from ollama.com and run the CLI directly.
-
-## Measurements
-
-Retrieval is measured by
-[`backend/scripts/evaluate.py`](backend/scripts/evaluate.py) on the same
-pipeline the chat uses. Figures below are from the **held-out bilingual set
-(47 queries)**, measured on the public demo pack. The index is rebuilt from
-scratch on every run.
-
-> **Full benchmark suite.** Reproducible tools for retrieval / LLM / load /
-> answer-level evaluation, local llama.cpp inference, corpus robustness,
-> baseline-vs-candidate regression checks (`--fail-on-regression` for CI) and
-> context-length scaling live in [`backend/benchmarks/`](backend/benchmarks)
-> with golden sets in [`backend/eval/`](backend/eval) and raw JSON/CSV runs in
-> [`results/`](results) — each with a git commit, exact command and dataset
-> hash. Methodology, metric formulas and every command:
-> **[docs/benchmark.md](docs/benchmark.md)**.
-
-### Retrieval quality (evaluation)
-
-```bash
+```powershell
 cd backend
-.venv/bin/python scripts/evaluate.py             # default config (hybrid)
-SEARCH_HYBRID=0 .venv/bin/python scripts/evaluate.py   # pure vector search
-.venv/bin/python scripts/evaluate.py --rerank    # + cross-encoder (rejected)
+pytest
+cd ..\frontend
+npm run lint
+npm run build
 ```
 
-Results (Recall@1 / Recall@3 / MRR@5 / search latency per query, CPU,
-paraphrase-multilingual-MiniLM):
-
-| Configuration                        | Recall@1  | Recall@3 | MRR@5     | Latency    |
-| ------------------------------------ | --------- | -------- | --------- | ---------- |
-| Vector search                        | 53.2%     | 91.5%    | 0.727     | 11 ms      |
-| **Hybrid BM25 + RRF (default)**      | **87.2%** | 97.9%    | **0.926** | 17 ms      |
-| Hybrid + reranker                    | 41.7%     | 100%     | 0.694     | ~2.9 s     |
-
-**Decision:** hybrid BM25 + RRF is the default — the best measured trade-off
-on this held-out set. The reranker row was tested and **rejected**
-(−45 p.p. Recall@1, +~3 s): the cross-encoder scores semantic relevance, and
-a RU/EN “twin” is just as semantically relevant.
-
-Per-category breakdown (hybrid, default):
-
-| Category      | Questions | Recall@1 | Recall@3 |
-| ------------- | --------- | -------- | -------- |
-| fact          | 15        | 100%     | 100%     |
-| numeric       | 15        | 86.7%    | 100%     |
-| paraphrase    | 9         | 88.9%    | 100%     |
-| cross-lingual | 8         | 62.5%    | 87.5%    |
-
-Overall hybrid Recall@1 **87%**. Cross-lingual queries are the weakest
-category (62.5% Recall@1) — a known next step (RU/EN synonym dictionary and a
-multilingual reranker) — **not a headline metric**.
-
-**Language twins.** Embeddings align RU and EN, so a Russian question can
-surface the English document (vector-only Recall@1 53.2%). Lexical BM25 in
-the fusion is required, not optional (+34 p.p. Recall@1).
-
-Modes: `SEARCH_HYBRID` (default `1`), `SEARCH_RERANK=1` enables the reranker
-(an extra ~1 GB model on first run — kept off).
-
-### Answer latency (benchmark)
-
-The same approach for the LLM: a live run against the real API (SSE stream of a
-RAG answer, the same question, local CPU client). Measured Aug 28, 2026:
-
-| Model                                |           First token (TTFT) | Full answer |
-| ------------------------------------ | ---------------------------: | ----------: |
-| GLM-5.3-flash (Z.ai)                 |                    2.5–3.0 s |   3.3–3.9 s |
-| GLM-5.3 (Z.ai)                       |                        2.6 s |       3.0 s |
-| Llama 3.2 3B (Ollama, local, CPU)    | 1.2–3.6 s (cold start +13.7 s) |   2.5–5.4 s |
-| GLM-4.5-flash (Z.ai, free)           |                       25–50 s |    39–51 s  |
-| Demo mode (mock, no network)         |                        87 ms |       0.5 s |
-
-Additionally:
-
-- agent mode (tool steps + two LLM calls) — 9.2 s on GLM-5.3-flash
-- demo pack indexing (6 files → 12 chunks) — 0.7 s
-- vector search via API — p50 18 ms server-side
-
-**Takeaway:** latency is defined by the model _generation_, not by settings:
-GLM-4.5-flash (the older “thinking” generation, even with `thinking=disabled`)
-answers in 25–50 s, while GLM-5.3-flash on the same pipeline — ~3 s. That is
-why the free model is not recommended by default.
-
-**Tested hypothesis: trimming the context does not speed up the first token.**
-`top_k` 5 → 4 at unchanged Recall (91.7% / 100%) saves ~20% of prefill tokens,
-but the gain is not readable on the live API: in alternating runs the
-provider's latency spread (2.1–7.2 s) dwarfs the 100–300 ms saving. Chunk size
-800 → 400 (Recall also identical) changes nothing at all on the demo corpus:
-pages are shorter than 400 tokens, chunks are not re-split. Conclusion: TTFT
-~2.5–3 s is the GLM-5.3-flash floor on the provider side. Our pipeline adds
-~20 ms (<1%) — there is nothing left to trim. The `top_k=5` and
-`chunk 800/120` defaults stay.
-
-**On the local model** (Llama 3.2 3B, Q4_K_M, `OLLAMA_NUM_GPU=0` — CPU on
-macOS 13): warm answers are faster than every cloud option (first token
-1.2–3.6 s, full answer 2.5–5.4 s), completely free and private. But: the first
-request after idle loads 2 GB of model into RAM (+13.7 s), spikes up to 8–15 s
-happen under load, and the 3B model drops citations more often and gives
-shorter answers — format accuracy remains with the flagship models.
-
-### Query cost
-
-Measured on the real RAG pipeline (`results/` LLM-bench runs, usage from the
-provider): a question costs **~0.6–1 thousand input tokens + ~100–300 output
-tokens** (pages of the demo corpus are short). At Z.ai's list price for
-GLM-5.3-flash ($0.15 / $0.50 per 1M input/output tokens) that is
-**≈ $0.0002 per question — about 5,000 questions per $1**. Zero-cost options:
-the free `glm-4.5-flash` and a local Llama via Ollama (computed on your
-machine). Judge 5.0/5 is a **supporting** signal only (see below).
-
-### Answer quality (LLM-as-judge)
-
-Retrieval is necessary but not sufficient: does the model answer **correctly**
-given the retrieved context? The script has a judge mode: for every golden
-question the model generates a real answer (the same RAG pipeline as the
-chat), then a second LLM pass — the “judge” — scores the answer on three axes
-(1–5): faithfulness to the context, relevance to the question, citation
-correctness:
-
-```bash
-.venv/bin/python scripts/evaluate.py --judge   # + judge scoring of answers
-```
-
-Result on the held-out set (answers and judge: glm-4.5-flash, hybrid
-retrieval) — **supporting signal only**. Same-family self-judging is lenient.
-A strict evaluation needs `--judge-model` from another family or a human.
-
-| Axis                            | Average score |
-| ------------------------------- | ------------- |
-| Faithfulness (no hallucinations)| 5.0 / 5       |
-| Relevance (answers the question)| 5.0 / 5       |
-| Citations (citations correct)   | 5.0 / 5       |
-
-## 🚀 Deploy
-
-The live version is hosted on **Hugging Face Spaces** (Docker) — one container
-where **FastAPI serves both the API and the built frontend** from a single
-domain (no CORS, no inter-service network). The build is described by the root
-[`Dockerfile`](Dockerfile): a multi-stage image — `vite build` first, then the
-Python backend serving the static files from `/app/static`.
-
-- Space metadata (SDK, port `7860`) — in the YAML block at the top of
-  [README.md](README.md).
-- Keys are set as **Space secrets** (`ZAI_API_KEY` etc.) and never enter the
-  code.
-- For a local two-service setup there is
-  [`docker-compose.yml`](docker-compose.yml) (nginx proxies `/api` to the
-  backend) — see [Via Docker](#via-docker).
-
-## Tests
-
-The backend is covered with **128 pytest tests**: 63 app tests (parsers
-(PDF/DOCX/XLSX), chunking, language detection (RU/EN/中文/日本語/한국어), RAG
-pipeline and hybrid retrieval, citations / source mapping, the agent tool loop
-(fake providers), API/SSE flows and error handling) + 65 benchmark-tool tests
-(percentile/Recall/MRR math, deterministic answer checks, judge-output parsing,
-timing aggregation). Tests run in an isolated `backend/data/test/` store —
-working data is untouched:
-
-```bash
-cd backend
-pip install -r requirements-dev.txt
-pytest -q
-```
-
-CI (GitHub Actions) runs the backend tests and the frontend build on every
-push.
-
-## Stack
-
-- **Backend:** FastAPI, SQLAlchemy (SQLite), ChromaDB, fastembed, pypdf,
-  python-docx, openpyxl, tiktoken
-- **Frontend:** React 19, TypeScript, Vite, react-markdown
-- **LLM:** Z.ai (GLM) / OpenAI / Anthropic / Ollama / mock (custom `base_url`)
-
-## Notes
-
-- The backend defaults to port `8000` (proxied from Vite via `/api`). If the
-  port is busy, free it or change `target` in
-  [`frontend/vite.config.ts`](frontend/vite.config.ts).
-- Data (uploaded files, vector index, history) lives in `backend/data/` and is
-  not committed.
-- **Settings via link.** Initial language and theme can be set with query
-  parameters: `http://localhost:5173/?lang=en&theme=light` (`lang` = `ru`|`en`,
-  `theme` = `light`|`dark`). Resolution ladder: URL → `localStorage` → defaults
-  (English language, system theme via `prefers-color-scheme`). Theme and
-  language are applied pre-paint (script in `index.html`) — no wrong-theme
-  flash. The parameters apply once, get saved and are then removed from the
-  URL — the in-app switchers take over. Handy for sharing a pre-configured
-  link.
+Include a concise description of the behavior affected and the checks run.

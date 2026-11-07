@@ -1,4 +1,4 @@
-import { IconChat, IconGlobe, IconMoon, IconPlus, IconSpark, IconSun, IconTrash } from '../lib/icons'
+import { IconChat, IconGlobe, IconMoon, IconPlus, IconTerminal, IconSun, IconTrash } from '../lib/icons'
 import { AnalyticsEvent, trackEvent } from '../lib/analytics'
 import { useSwipeDismiss } from '../hooks/useSwipeDismiss'
 import { Filters } from './Filters'
@@ -74,9 +74,9 @@ export function Sidebar({
       {...swipe.handlers}
     >
       <div className="brand">
-        <div className="brand-logo"><IconSpark width={20} height={20} /></div>
+        <div className="brand-logo"><IconTerminal width={20} height={20} /></div>
         <div>
-          <div className="brand-title">RAG Chat</div>
+          <div className="brand-title">RagDocAgent</div>
           <div className="brand-sub">{t('brandSub')}</div>
         </div>
         {/* Крестик шторки: как в панели документов — всегда виден, пока

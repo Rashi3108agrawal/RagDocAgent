@@ -394,3 +394,111 @@ body.no-scroll { overflow: hidden; }
   .topbar { padding: 10px 14px; }
   .docs-toggle { padding: 8px 12px; }
 }
+
+/* Terminal workspace density and finish. */
+.sidebar { padding: 12px 10px; gap: 10px; }
+.brand { gap: 9px; padding: 4px 6px; }
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  background: var(--bg-soft);
+  box-shadow: none;
+}
+.brand-title { font-size: 13px; letter-spacing: 0; }
+.brand-sub { font-size: 10px; }
+.btn-new {
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--bg-soft);
+  box-shadow: none;
+}
+.btn-new:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; transform: none; }
+.topbar {
+  min-height: 48px;
+  padding: 8px 14px;
+  background: var(--bg-elev);
+  backdrop-filter: none;
+  animation: none;
+}
+.dropdown-trigger { padding: 6px 9px; }
+.docs-toggle { padding: 6px 10px; }
+.docs-count {
+  min-width: 18px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  color: var(--accent-2);
+  background: var(--bg-soft);
+}
+.welcome {
+  max-width: 720px;
+  padding: 9vh 24px 28px;
+  text-align: left;
+}
+.welcome-logo { display: none; }
+.mode-badge {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  background: var(--bg-elev);
+  font: 11px/1.3 var(--font-mono);
+}
+.welcome-title { margin-bottom: 6px; font-size: 21px; letter-spacing: 0; }
+.welcome-sub { max-width: 620px; margin: 0 0 16px; font-size: 12px; line-height: 1.65; }
+.welcome-note { padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--r-sm); }
+.suggestions { max-width: 620px; margin: 0; gap: 5px; }
+.suggestion { padding: 8px 10px; border-radius: var(--r-sm); font-size: 12px; }
+.suggestion:hover:not(:disabled) { box-shadow: none; transform: none; }
+.messages { max-width: 840px; gap: 18px; }
+.msg { gap: 10px; }
+.msg-avatar { width: 26px; height: 26px; border-radius: var(--r-sm); }
+.bubble { padding: 10px 12px; border-radius: var(--r-md); font-size: 13px; line-height: 1.6; }
+.bubble-user { color: #0f1117; }
+.docs-panel { width: 300px; }
+.docs-head { min-height: 48px; padding: 10px 12px; }
+.docs-upload { padding: 12px; }
+.docs-list { gap: 5px; padding: 8px; }
+.doc-item { gap: 8px; padding: 8px; border-radius: var(--r-sm); }
+.doc-ext { width: 32px; height: 32px; border-radius: var(--r-sm); }
+.modal-box { border-radius: var(--r-md); }
+.modal-actions { justify-content: center; }
+.btn { border-radius: var(--r-sm); }
+
+.brand,
+.btn-new,
+.sidebar-filters,
+.conv-list,
+.sidebar-footer,
+.conv-item,
+.welcome-title,
+.welcome-sub,
+.welcome-note,
+.suggestion,
+.messages,
+.msg,
+.search-results,
+.docs-panel,
+.docs-head,
+.docs-upload,
+.doc-item { animation: none; }
+
+@media (min-width: 1161px) {
+  .app { grid-template-columns: 248px minmax(0, 1fr) auto; }
+}
+
+@media (max-width: 620px) {
+  .welcome { padding: 7vh 16px 24px; }
+  .messages { padding: 20px 14px 28px; }
+}
+
+@media (max-width: 480px) {
+  .sidebar,
+  .docs-panel { width: 100%; }
+}

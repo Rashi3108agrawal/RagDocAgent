@@ -32,7 +32,7 @@
       "disposition": "rejected",
       "doc_status": "error",
       "chunks": 0,
-      "error": "Не удалось прочитать Word-документ: Package not found at '/Users/aamazurenk/Desktop/AI-Engineer/ai-RAG-chat/backend/data/eval/uploads/2548ed9acd514d88ac75830487"
+      "error": "Не удалось прочитать Word-документ: Package not found at '/workspace/backend/data/eval/uploads/2548ed9acd514d88ac75830487"
     },
     {
       "file": "whitespace.docx",

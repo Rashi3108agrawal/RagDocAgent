@@ -1,4 +1,4 @@
-# Технический отчёт: benchmark & evaluation suite для ai-RAG-chat
+# Технический отчёт: benchmark & evaluation suite RagDocAgent
 
 Подготовлено для позиции **MWS AI — LLM Inference Engineer**.
 Дата: 2026-10-22. Окружение: Apple M1 Pro (8 ядер: 6P+2E, 14 GPU-ядер), 16 GB unified, macOS 13.6 Ventura.
